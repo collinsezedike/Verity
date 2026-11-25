@@ -84,9 +84,10 @@ pub fn set_submission(e: &Env, id: u64, s: &SubmissionRecord) {
 }
 
 pub fn get_attestation(e: &Env, submission_id: u64, reexecutor: &Address) -> Option<bool> {
-    e.storage()
-        .persistent()
-        .get(&DataKey::ReplayAttestation(submission_id, reexecutor.clone()))
+    e.storage().persistent().get(&DataKey::ReplayAttestation(
+        submission_id,
+        reexecutor.clone(),
+    ))
 }
 
 pub fn mark_attested(e: &Env, submission_id: u64, reexecutor: &Address, matched: bool) {
@@ -120,9 +121,10 @@ pub fn set_reexecutor(e: &Env, who: &Address, info: &ReexecutorInfo) {
 }
 
 pub fn is_released(e: &Env, submission_id: u64, reexecutor: &Address) -> bool {
-    e.storage()
-        .persistent()
-        .has(&DataKey::AttestationReleased(submission_id, reexecutor.clone()))
+    e.storage().persistent().has(&DataKey::AttestationReleased(
+        submission_id,
+        reexecutor.clone(),
+    ))
 }
 
 pub fn mark_released(e: &Env, submission_id: u64, reexecutor: &Address) {
