@@ -1,9 +1,9 @@
 #![cfg(test)]
 
 use crate::events::{
-    AttestationLockReleased, BondSettled, ChallengeOpened, ChallengeResolved, ConfigUpdated,
-    Finalized, ReexecutorApprovalChanged, ReexecutorRegistered, ReexecutorStakeWithdrawn,
-    ReplayAttested, Slashed, SubmissionCreated,
+    AttestationLockReleased, ChallengeOpened, ChallengeResolved, Finalized,
+    ReexecutorApprovalChanged, ReexecutorRegistered, ReexecutorStakeWithdrawn, ReplayAttested,
+    Slashed, SubmissionCreated,
 };
 use crate::{EscrowGate, EscrowGateClient};
 use soroban_sdk::{
@@ -2954,7 +2954,11 @@ fn a_challenge_with_a_zero_bond_is_rejected_even_when_the_minimum_rounds_to_zero
 // field or a reordered topic would pass CI and only show up as corrupt reads.
 
 fn gate_events(e: &Env, contract: &Address) -> std::vec::Vec<soroban_sdk::xdr::ContractEvent> {
-    e.events().all().filter_by_contract(contract).events().to_vec()
+    e.events()
+        .all()
+        .filter_by_contract(contract)
+        .events()
+        .to_vec()
 }
 
 /// Asserts the contract published exactly one event whose XDR is byte-for-byte
@@ -2969,7 +2973,10 @@ fn assert_published(
         .iter()
         .filter(|ev| *ev == &expected)
         .count();
-    assert_eq!(count, 1, "expected exactly one {name} event with this payload");
+    assert_eq!(
+        count, 1,
+        "expected exactly one {name} event with this payload"
+    );
 }
 
 #[test]
@@ -3014,8 +3021,12 @@ fn register_reexecutor_publishes_reexecutor_registered() {
         &e,
         &w.client.address,
         "reexecutor_registered",
-        ReexecutorRegistered { reexecutor: rex, stake_amount: 600 * XLM, active: true }
-            .to_xdr(&e, &w.client.address),
+        ReexecutorRegistered {
+            reexecutor: rex,
+            stake_amount: 600 * XLM,
+            active: true,
+        }
+        .to_xdr(&e, &w.client.address),
     );
 }
 
@@ -3030,8 +3041,12 @@ fn withdraw_stake_publishes_reexecutor_stake_withdrawn() {
         &e,
         &w.client.address,
         "reexecutor_stake_withdrawn",
-        ReexecutorStakeWithdrawn { reexecutor: rex, new_stake: 500 * XLM, active: true }
-            .to_xdr(&e, &w.client.address),
+        ReexecutorStakeWithdrawn {
+            reexecutor: rex,
+            new_stake: 500 * XLM,
+            active: true,
+        }
+        .to_xdr(&e, &w.client.address),
     );
 }
 
@@ -3046,8 +3061,11 @@ fn set_reexecutor_approved_publishes_reexecutor_approval_changed() {
         &e,
         &w.client.address,
         "reexecutor_approval_changed",
-        ReexecutorApprovalChanged { reexecutor: rex, approved: true }
-            .to_xdr(&e, &w.client.address),
+        ReexecutorApprovalChanged {
+            reexecutor: rex,
+            approved: true,
+        }
+        .to_xdr(&e, &w.client.address),
     );
 }
 
@@ -3065,8 +3083,13 @@ fn attest_replay_publishes_replay_attested() {
         &e,
         &w.client.address,
         "replay_attested",
-        ReplayAttested { submission_id: id, reexecutor: rex, output_hash, matched: true }
-            .to_xdr(&e, &w.client.address),
+        ReplayAttested {
+            submission_id: id,
+            reexecutor: rex,
+            output_hash,
+            matched: true,
+        }
+        .to_xdr(&e, &w.client.address),
     );
 }
 
@@ -3083,8 +3106,12 @@ fn open_challenge_publishes_challenge_opened() {
         &e,
         &w.client.address,
         "challenge_opened",
-        ChallengeOpened { submission_id: id, challenger, bond: 50 * XLM }
-            .to_xdr(&e, &w.client.address),
+        ChallengeOpened {
+            submission_id: id,
+            challenger,
+            bond: 50 * XLM,
+        }
+        .to_xdr(&e, &w.client.address),
     );
 }
 
@@ -3100,9 +3127,11 @@ fn resolve_challenge_publishes_challenge_resolved() {
     for _ in 0..3 {
         let r = Address::generate(&e);
         register_rex(&w, &r);
-        w.client.attest_replay(&r, &id, &BytesN::from_array(&e, &[9u8; 32]), &false);
+        w.client
+            .attest_replay(&r, &id, &BytesN::from_array(&e, &[9u8; 32]), &false);
     }
-    w.client.resolve_challenge(&id, &ResolutionMethod::ReexecutionConsensus);
+    w.client
+        .resolve_challenge(&id, &ResolutionMethod::ReexecutionConsensus);
     assert_published(
         &e,
         &w.client.address,
@@ -3128,8 +3157,11 @@ fn finalize_publishes_finalized() {
         &e,
         &w.client.address,
         "finalized",
-        Finalized { submission_id: id, verdict: Verdict::Verified }
-            .to_xdr(&e, &w.client.address),
+        Finalized {
+            submission_id: id,
+            verdict: Verdict::Verified,
+        }
+        .to_xdr(&e, &w.client.address),
     );
 }
 
@@ -3145,17 +3177,26 @@ fn slash_publishes_slashed_with_the_real_amount() {
     for r in [&wrong, &right1, &right2] {
         register_rex(&w, r);
     }
-    w.client.attest_replay(&wrong, &id, &BytesN::from_array(&e, &[3u8; 32]), &true);
-    w.client.attest_replay(&right1, &id, &BytesN::from_array(&e, &[9u8; 32]), &false);
-    w.client.attest_replay(&right2, &id, &BytesN::from_array(&e, &[9u8; 32]), &false);
+    w.client
+        .attest_replay(&wrong, &id, &BytesN::from_array(&e, &[3u8; 32]), &true);
+    w.client
+        .attest_replay(&right1, &id, &BytesN::from_array(&e, &[9u8; 32]), &false);
+    w.client
+        .attest_replay(&right2, &id, &BytesN::from_array(&e, &[9u8; 32]), &false);
     assert_eq!(w.client.finalize(&id), Verdict::Slashed);
     assert_eq!(w.client.slash(&wrong, &id), 60 * XLM);
     assert_published(
         &e,
         &w.client.address,
         "slashed",
-        Slashed { submission_id: id, reexecutor: wrong, amount: 60 * XLM }
-            .to_xdr(&e, &w.client.address),
+        Slashed {
+            submission_id: id,
+            reexecutor: wrong,
+            amount: 60 * XLM,
+            to_challenger: 0,
+            to_treasury: 60 * XLM,
+        }
+        .to_xdr(&e, &w.client.address),
     );
 }
 
@@ -3205,13 +3246,27 @@ fn releasing_a_correct_voters_lock_publishes_no_slash() {
     let right3 = Address::generate(&e);
     for r in [&right1, &right2, &right3] {
         register_rex(&w, r);
-        w.client.attest_replay(r, &id, &BytesN::from_array(&e, &[3u8; 32]), &true);
+        w.client
+            .attest_replay(r, &id, &BytesN::from_array(&e, &[3u8; 32]), &true);
     }
     assert_eq!(w.client.finalize(&id), Verdict::Verified);
 
     w.client.release_attestation_lock(&id, &right1);
-    // A vote the verdict agreed with is never slashed, and releasing its
-    // lock publishes nothing else either.
-    assert!(gate_events(&e, &w.client.address).is_empty());
-    assert_eq!(w.client.reexecutor_info(&right1).unwrap().stake_amount, 600 * XLM);
+    // A vote the verdict agreed with is never slashed. Releasing its lock
+    // publishes AttestationLockReleased with open_attestations=0.
+    let events = gate_events(&e, &w.client.address);
+    assert_eq!(events.len(), 1);
+    let released = |open: u32| {
+        AttestationLockReleased {
+            submission_id: id,
+            reexecutor: right1.clone(),
+            open_attestations: open,
+        }
+        .to_xdr(&e, &w.client.address)
+    };
+    assert!(events.contains(&released(0)));
+    assert_eq!(
+        w.client.reexecutor_info(&right1).unwrap().stake_amount,
+        600 * XLM
+    );
 }
